@@ -37,42 +37,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $operating_hours_to = $_POST['operating_hours_to'];
     $contact_info = $_POST['contact_details'];
     $historical_significance = $_POST['history'];
-    
+
     // Check if a new image is being uploaded
-if ($_FILES['attraction_image']['name']) {
-    $image = $_FILES['attraction_image']['name'];
-    $target_dir = "../images/";
-    $target_file = $target_dir . basename($image);
-    move_uploaded_file($_FILES['attraction_image']['tmp_name'], $target_file);
-
-    // Ensure the correct path is saved in the database
-    $image = $target_dir . basename($image);
-} else {
-    // If no new image is uploaded, keep the existing filename
-    $image = $attraction['image'];
-}
-
-$stmt = $conn->prepare("UPDATE attractions SET attraction_name = ?, description = ?, entrance_fee = ?, parking = ?, dining = ?, operating_hours_from = ?, operating_hours_to = ?, contact_details = ?, history = ?, image = ? WHERE attr_id = ?");
-$stmt->bind_param("ssssssssssi", $attraction_name, $description, $entry_fee, $parking, $dining, $operating_hours_from, $operating_hours_to, $contact_info, $historical_significance, $image, $attr_id);
-
-if ($stmt->execute()) {
-    echo "<p>Attraction updated successfully.</p>";
-    header ("location: manage_attractions.php");
-
-    // Update destinations if an entry exists for this attraction
-    $updateDestStmt = $conn->prepare("UPDATE destinations SET attraction_name = ?, image = ? WHERE dest_id = ?");
-    $updateDestStmt->bind_param("ssi", $attraction_name, $image, $attr_id); // Assuming attr_id is the same as dest_id
-
-    if ($updateDestStmt->execute()) {
-        echo "<p>Destinations table updated successfully.</p>";
+    if ($_FILES['attraction_image']['name']) {
+        $image = $_FILES['attraction_image']['name'];
+        $target_dir = "../images/";
+        $target_file = $target_dir . basename($image);
+        move_uploaded_file($_FILES['attraction_image']['tmp_name'], $target_file);
+        $image = $target_file;
     } else {
-        echo "<p>Error updating destinations table.</p>";
+        $image = $attraction['image'];
     }
 
-} else {
-    echo "<p>Error updating attraction.</p>";
-}
+    // Update the attraction
+    $stmt = $conn->prepare("UPDATE attractions SET attraction_name = ?, description = ?, entrance_fee = ?, parking = ?, dining = ?, operating_hours_from = ?, operating_hours_to = ?, contact_details = ?, history = ?, image = ? WHERE attr_id = ?");
+    $stmt->bind_param("ssssssssssi", $attraction_name, $description, $entry_fee, $parking, $dining, $operating_hours_from, $operating_hours_to, $contact_info, $historical_significance, $image, $attr_id);
 
+    if ($stmt->execute()) {
+        echo "<p>Attraction updated successfully.</p>";
+
+        // Update destinations table
+        $updateDestStmt = $conn->prepare("UPDATE destinations SET attraction_name = ?, image = ? WHERE attraction_name = ?");
+        $updateDestStmt->bind_param("sss", $attraction_name, $image, $attraction['attraction_name']);
+
+        if ($updateDestStmt->execute()) {
+            echo "<p>Destinations table updated successfully.</p>";
+        } else {
+            echo "<p>Error updating destinations table.</p>";
+        }
+
+        // Redirect after all operations are complete
+        header("location: manage_attractions.php");
+        exit;
+    } else {
+        echo "<p>Error updating attraction.</p>";
+    }
 }
 ?>
 
@@ -92,13 +91,11 @@ if ($stmt->execute()) {
             background-color: #f9f9f9; 
             border-radius: 8px; 
         }
-
         .form-container label { 
             display: block; 
             margin-bottom: 10px; 
             font-weight: bold; 
         }
-
         .form-container input[type="text"], 
         .form-container textarea, 
         .form-container select { 
@@ -108,11 +105,9 @@ if ($stmt->execute()) {
             border: 1px solid #ccc; 
             border-radius: 4px; 
         }
-        
         .form-container input[type="file"] { 
             margin-bottom: 20px; 
         }
-       
         .form-container input[type="submit"] { 
             background-color: #333; 
             color: #fff; 
@@ -121,7 +116,6 @@ if ($stmt->execute()) {
             border-radius: 4px; 
             cursor: pointer; 
         }
-
         .form-container input[type="submit"]:hover { 
             background-color: #555; 
         }
@@ -179,32 +173,22 @@ if ($stmt->execute()) {
                 <!-- Add this img element for previewing the uploaded image -->
                 <img id="image_preview" alt="Image Preview" style="max-width: 100%; height: auto; display: none;">
 
-               
+                <!-- <label for="map">Map Link:</label>
+                <input type="text" id="map" name="map" value="<?//php echo htmlspecialchars($attraction['map']); ?>">
 
-                <button type="submit">Update Attraction</button>
+                <label for="weather">Weather Forecast Link:</label>
+                <input type="text" id="weather" name="weather" value="<?//php echo htmlspecialchars($attraction['weather']); ?>"> -->
+
+                <!-- <label for="longitude">Longitude:</label>
+                <input type="text" id="longitude" name="longitude" value="<?//php echo htmlspecialchars($attraction['longitude']); ?>">
+
+                <label for="latitude">Latitude:</label>
+                <input type="text" id="latitude" name="latitude" value="<?//php echo htmlspecialchars($attraction['latitude']); ?>"> -->
+
+                <input type="submit" value="Update Attraction">
             </form>
-            <a href="attractions.php?city=<?php echo htmlspecialchars($attraction['city_id']); ?>">Back to Attractions</a>
         </div>
     </div>
 </div>
-
-<script>
-function previewImage(event) {
-    const imagePreview = document.getElementById('image_preview');
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            imagePreview.src = e.target.result;
-            imagePreview.style.display = 'block'; // Show the preview
-        }
-        reader.readAsDataURL(file);
-    } else {
-        imagePreview.style.display = 'none'; // Hide the preview if no file is selected
-    }
-}
-</script>
-
-
 </body>
 </html>

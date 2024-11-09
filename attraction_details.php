@@ -100,8 +100,14 @@ if ($result->num_rows > 0) {
         <div class="attraction-header">
             <h1><?php echo htmlspecialchars($attraction['attraction_name']); ?></h1>
             <img class="attraction-image" src="images/<?php echo htmlspecialchars($attraction['image']); ?>" alt="<?php echo htmlspecialchars($attraction['attraction_name']); ?>">
-            <!-- Google Maps URL for directions (updated dynamically) -->
+            
+            <!-- Google Maps URL for directions -->
             <a id="get-directions" href="https://www.google.com/maps?q=<?php echo urlencode($longitude . ',' . $latitude); ?>" target="_blank" class="get-direction-button">Get Directions</a>
+            <a href="https://www.google.com/search?q=weather+Church%20of%20Sto.%20Sepulcro"></a>
+            
+            <!-- Google Weather URL -->
+            <!-- <a id="view-weather" href="https://www.google.com/search?q=weather+<?//php echo urlencode($longitude . ',' . $latitude); ?>" target="_blank" class="get-direction-button">View Weather</a> -->
+            <a id="view-weather" href="https://www.google.com/search?q=weather+<?php echo htmlspecialchars($attraction['attraction_name']); ?>" target="_blank" class="get-direction-button">View Weather</a>
         </div>
 
         <div class="attraction-details">
