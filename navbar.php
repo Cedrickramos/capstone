@@ -142,7 +142,7 @@ session_start(); // Start the session
         <ul class="nav-links">
             <b><li><a href="index.php">HOME</a></li></b>
             <b><li><a href="attractions.php">ATTRACTIONS</a></li></b>
-            <b><li><a href="map.php">MAP</a></li></b>
+            <!-- <b><li><a href="map.php">MAP</a></li></b> -->
             <b><li><a href="about.php">ABOUT</a></li></b>
             <b><li><a href="contact.php">CONTACT</a></li></b>
             <?php if (isset($_SESSION['uid'])): ?>

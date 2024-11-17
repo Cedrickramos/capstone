@@ -107,7 +107,7 @@ if ($result->num_rows > 0) {
             
             <!-- Google Weather URL -->
             <!-- <a id="view-weather" href="https://www.google.com/search?q=weather+<?//php echo urlencode($longitude . ',' . $latitude); ?>" target="_blank" class="get-direction-button">View Weather</a> -->
-            <a id="view-weather" href="https://www.google.com/search?q=weather+<?php echo htmlspecialchars($attraction['attraction_name']); ?>" target="_blank" class="get-direction-button">View Weather</a>
+            <a id="view-weather" href="https://www.google.com/search?q=weather+<?php echo htmlspecialchars($attraction['attraction_name']); ?>" class="get-direction-button">View Weather</a>
         </div>
 
         <div class="attraction-details">
