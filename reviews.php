@@ -2,65 +2,74 @@
 require_once "config.php";
 session_start();
 
+// Set the correct content-type header
+header('Content-Type: text/html; charset=UTF-8');
+
 // Ensure user is logged in
 if (!isset($_SESSION['uid'])) {
     header("Location: login.php");
     exit();
 }
 
-// Get the attr_id from the URL
-$attr_id = $_GET['attr_id'] ?? '';
 $uid = $_SESSION['uid'];
+$attr_id = $_GET['attr_id'] ?? null;
+$resto_id = $_GET['resto_id'] ?? null;
+
+// Redirect if both IDs are missing
+if (!$attr_id && !$resto_id) {
+    echo "Invalid review request. Please specify an attraction or restaurant.";
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $rating = $_POST['rating'];
     $message = $_POST['message'];
-    $images = [];
-    $video = null;
+    $existingImages = json_decode($_POST['existing_images'], true) ?? [];
+    $images = $existingImages;
 
-    // Handle file uploads for images
+    // Directory for image uploads
+    $uploadDir = __DIR__ . "/images/";
+
+    // Handle image uploads (max 10 images total)
     if (!empty($_FILES['images']['name'][0])) {
         foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
-            $file_name = $_FILES['images']['name'][$key];
-            $file_tmp = $_FILES['images']['tmp_name'][$key];
-            $file_path = "images/" . basename($file_name);
+            if (count($images) < 10) { // Limit total to 10 images
+                $fileName = basename($_FILES['images']['name'][$key]);
+                $sanitizedFileName = preg_replace("/[^a-zA-Z0-9\.\-\_]/", "", $fileName);
+                $fileTmp = $_FILES['images']['tmp_name'][$key];
+                $filePath = $uploadDir . $sanitizedFileName;
 
-            // Move uploaded file to images/
-            if (move_uploaded_file($file_tmp, $file_path)) {
-                $images[] = $file_path;
+                // Move uploaded file
+                if (move_uploaded_file($fileTmp, $filePath)) {
+                    $images[] = "images/" . $sanitizedFileName; // Store relative path
+                } else {
+                    echo "Failed to upload {$fileName}. Please try again.<br>";
+                }
             }
         }
     }
-    
-    // Handle video upload
-    if (!empty($_FILES['video']['name'])) {
-        $video_name = $_FILES['video']['name'];
-        $video_tmp = $_FILES['video']['tmp_name'];
-        $video_path = "videos/" . basename($video_name);
-        
-        // Move uploaded video to videos/ directory
-        if (move_uploaded_file($video_tmp, $video_path)) {
-            $video = $video_path;
-        }
+
+    // Convert images array to JSON
+    $images_json = json_encode($images);
+
+    // Insert review into the database
+    $stmt = $conn->prepare("
+        INSERT INTO reviews (attr_id, resto_id, uid, rating, message, images) 
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
+
+    if (!$stmt) {
+        die("Database error: " . $conn->error);
     }
 
-    // Convert images array to JSON para mabisa
-    $images_json = json_encode($images);
-    
-$stmt = $conn->prepare("INSERT INTO reviews (attr_id, uid, rating, message, images, video) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("iiisss", $attr_id, $resto_id, $uid, $rating, $message, $images_json);
 
-$stmt->bind_param("iiisss", $attr_id, $uid, $rating, $message, $images_json, $video);
-
-// Execute the statement
-if ($stmt->execute()) {
-    echo "Review submitted successfully!";
-    // header("location: attraction_details.php?attr_id='attr_id");
-    header("Location: attraction_details.php?attr_id=" . $attr_id);
-
-} else {
-    echo "Error submitting review: " . $stmt->error;
-}
-
+    if ($stmt->execute()) {
+        header("Location: review_sent.php?attr_id=" . ($attr_id ?? $resto_id));
+        exit();
+    } else {
+        echo "Error submitting review: " . $stmt->error;
+    }
 }
 ?>
 
@@ -72,126 +81,219 @@ if ($stmt->execute()) {
     <title>Leave a Review</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f7f7;
-    color: #333;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Main container for the review form */
-.main-container {
-    max-width: 800px;
-    margin: 50px auto;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+    max-width: 600px;
+    margin: 100px auto 0px auto; /* Reduced bottom margin to 10px */
+    padding: 20px;
     background-color: #fff;
-    padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
     text-align: center;
-    font-size: 28px;
-    color: #333;
-    margin-bottom: 40px;
 }
 
-label {
-    font-size: 18px;
-    font-weight: bold;
-    display: block;
-    margin-bottom: 10px;
-    color: #444;
-}
 
-input[type="file"],
-select,
-textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .star {
+            font-size: 40px;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
+        .star.selected {
+            color: #FFD700;
+            transform: scale(1.1);
+        }
+        textarea, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #666;
+        }
+        button[type="submit"] {
+            padding: 12px 20px;
+            font-size: 18px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        button[type="submit"]:hover {
+            background-color: #555;
+            transform: translateY(-2px);
+        }
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+        .image-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
+    justify-content: center;
+    position: relative;
+    min-height: 120px; /* Set a minimum height to reserve space */
+    border: 1px dashed #ccc; /* Optional: To give it a "dropzone" look */
+    border-radius: 10px;
+    align-items: center;
     background-color: #f9f9f9;
-    box-sizing: border-box;
-    transition: all 0.3s ease-in-out;
 }
 
-input[type="file"]:focus,
-select:focus,
-textarea:focus {
-    border-color: #4CAF50;
-    background-color: #fff;
-}
-
-textarea {
-    resize: vertical;
-    height: 150px;
-}
-
-button[type="submit"] {
-    width: 100%;
-    padding: 15px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #fff;
-    background-color: #333;
-    border: none;
+.image-preview img {
+    max-width: 100px;
+    max-height: 100px;
     border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-button[type="submit"]:hover {
-    background-color: #555;
+.image-preview img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
-    .main-container {
-        padding: 20px;
-        margin: 20px;
-    }
-
-    h1 {
-        font-size: 24px;
-    }
-    
-    button[type="submit"] {
-        font-size: 16px;
-        padding: 12px;
-    }
+#placeholder-text {
+    font-size: 14px;
+    color: #888;
 }
+
     </style>
 </head>
 <body>
-<div class="main-container">
+<div class="container">
     <h1>Leave a Review</h1>
     <form method="POST" enctype="multipart/form-data">
-        <label for="rating">Rating:</label>
-        <select name="rating" id="rating" required>
-            <option value="">Select a rating</option>
-            <option value="1" style="font-size: 20px;">&#11088;</option>
-            <option value="2" style="font-size: 20px;">&#11088;&#11088;</option>
-            <option value="3" style="font-size: 20px;">&#11088;&#11088;&#11088;</option>
-            <option value="4" style="font-size: 20px;">&#11088;&#11088;&#11088;&#11088;</option>
-            <option value="5" style="font-size: 20px;">&#11088;&#11088;&#11088;&#11088;&#11088;</option>
-        </select>
-
+        <div class="star-rating" id="star-rating">
+            <span class="star" data-value="1">&#9733;</span>
+            <span class="star" data-value="2">&#9733;</span>
+            <span class="star" data-value="3">&#9733;</span>
+            <span class="star" data-value="4">&#9733;</span>
+            <span class="star" data-value="5">&#9733;</span>
+        </div>
+        <input type="hidden" name="rating" id="rating" required>
+        <input type="hidden" name="existing_images" id="existing-images" value="[]">
+        
         <label for="message">Message:</label>
-        <textarea name="message" id="message" rows="5" required></textarea>
+        <textarea name="message" rows="5" placeholder="Write your review..." required></textarea>
 
-        <label for="images">Upload Images (max 5):</label>
-        <input type="file" name="images[]" id="images" multiple accept="image/*">
-
-        <label for="video">Upload Video (max 1):</label>
-        <input type="file" name="video" id="video" accept="video/*">
+        <label for="images">Upload Images (max 10):</label>
+        <input type="file" id="images" name="images[]" accept="image/*" multiple>
+        <div id="image-counter">Uploaded: 0/10</div>
+        <div class="image-preview" id="image-preview">
+            <p id="placeholder-text">No images uploaded yet.</p>
+        </div>
 
         <button type="submit">Submit Review</button>
     </form>
 </div>
+
+<script>
+const imagesInput = document.getElementById('images');
+const imagePreview = document.getElementById('image-preview');
+const imageCounter = document.getElementById('image-counter');
+const placeholderText = document.getElementById('placeholder-text');
+let selectedFiles = [];
+
+imagesInput.addEventListener('click', (event) => {
+    if (selectedFiles.length > 0) {
+        const userConfirmed = confirm("You have selected images. Adding new images will clear the current ones. Do you want to continue?");
+        if (!userConfirmed) {
+            event.preventDefault(); // Cancel the action
+        } else {
+            clearImages();
+        }
+    }
+});
+
+imagesInput.addEventListener('change', (event) => {
+    const files = Array.from(event.target.files);
+
+    // Clear previous selections and update previews
+    clearImages();
+
+    files.forEach((file) => {
+        if (selectedFiles.length < 10) {
+            selectedFiles.push(file);
+
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.alt = file.name;
+            imagePreview.appendChild(img);
+        }
+    });
+
+    updateCounter();
+});
+
+// Function to clear images and reset the preview
+function clearImages() {
+    selectedFiles = [];
+    imagePreview.innerHTML = '';
+    imagePreview.appendChild(placeholderText); // Re-add placeholder text
+    updateCounter();
+}
+
+// Update counter display
+function updateCounter() {
+    imageCounter.textContent = `Uploaded: ${selectedFiles.length}/10`;
+    placeholderText.style.display = selectedFiles.length === 0 ? 'block' : 'none';
+}
+
+
+
+// Star rating logic
+const stars = document.querySelectorAll('.star');
+const ratingInput = document.getElementById('rating');
+
+stars.forEach(star => {
+    star.addEventListener('mouseover', () => {
+        const value = star.getAttribute('data-value');
+        highlightStars(value);
+    });
+
+    star.addEventListener('mouseout', () => {
+        highlightStars(ratingInput.value);
+    });
+
+    star.addEventListener('click', () => {
+        ratingInput.value = star.getAttribute('data-value');
+    });
+});
+
+function highlightStars(value) {
+    stars.forEach(star => {
+        const starValue = star.getAttribute('data-value');
+        if (starValue <= value) {
+            star.classList.add('selected');
+        } else {
+            star.classList.remove('selected');
+        }
+    });
+}
+</script>
 </body>
 </html>

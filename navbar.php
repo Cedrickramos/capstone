@@ -18,7 +18,6 @@ session_start(); // Start the session
         /*------------------------ Navbar----------- */
         .navbar {
             background: #2C5F2D; 
-            /* background: #214A22;  */
             height: 60px;
             display: flex;
             justify-content: space-between;
@@ -97,8 +96,6 @@ session_start(); // Start the session
                 width: 250px;
                 height: auto;
                 background: #2C5F2D;
-                /* border-left: 2px solid #444;  */
-                /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); */
                 z-index: 999; 
                 transform: translateX(100%); 
                 transition: transform 0.3s ease-in-out;
@@ -124,6 +121,7 @@ session_start(); // Start the session
 
             .nav-links.show li {
                 opacity: 1; 
+
             }
         }
 
@@ -136,21 +134,24 @@ session_start(); // Start the session
 <body>
     <nav class="navbar">
         <div class="logo">
-            <img src="images/logo.png" alt="AccompanyMe Logo">
+            <img src="images/logo.jpg" alt="AccompanyMe Logo" style="border-radius: 100px;">
             <a href="index.php">AccompanyMe</a>
         </div>
         <ul class="nav-links">
             <b><li><a href="index.php">HOME</a></li></b>
             <b><li><a href="attractions.php">ATTRACTIONS</a></li></b>
-            <!-- <b><li><a href="map.php">MAP</a></li></b> -->
+            <!-- <b><li><a href="lagunamap.php">MAP</a></li></b> -->
             <b><li><a href="about.php">ABOUT</a></li></b>
             <b><li><a href="contact.php">CONTACT</a></li></b>
             <?php if (isset($_SESSION['uid'])): ?>
-                <b><li><a href="logout.php">LOGOUT</a></li></b>
+                <b><li><a href="confirm_logout.php">LOGOUT</a></li></b>
             <?php else: ?>
                 <b><li><a href="signin.php">SIGN IN</a></li></b>
             <?php endif; ?>
+
         </ul>
+
+
         <div class="menu-button">
             <div class="line1"></div>
             <div class="line2"></div>

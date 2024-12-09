@@ -2,6 +2,12 @@
 require_once "navbar.php";
 require_once "config.php";
 
+// Set the correct content-type header
+// header('Content-Type: text/html; charset=UTF-8');
+
+// Ensure the database connection uses UTF-8
+$conn->set_charset("utf8mb4");
+
 // Enable error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -9,130 +15,86 @@ ini_set('display_errors', 1);
 //cities boxes
 $cities = [
     "alaminos" => ["name" => "Alaminos", "image" => "attractions/alaminos.jpg"],
-    // "banilan" => ["name" => "Banilan", "image" => "attractions/banilan.jpg"],
     "bay" => ["name" => "Bay", "image" => "attractions/bay.jpg"],
     "biñan" => ["name" => "Biñan", "image" => "attractions/binan.jpg"],
     "cabuyao" => ["name" => "Cabuyao", "image" => "attractions/cabuyao.jpg"],
     "calamba" => ["name" => "Calamba", "image" => "attractions/calamba.jpg"],
     "calauan" => ["name" => "Calauan", "image" => "attractions/calauan.jpg"],
-    "canlubang" => ["name" => "Canlubang", "image" => "attractions/canlubang.jpg"],
     "cavinti" => ["name" => "Cavinti", "image" => "attractions/cavinti.jpg"],
-    // "del_remedio" => ["name" => "Del Remedio", "image" => "attractions/del_remedio.jpg"],
-    "famy" => ["name" => "Famy", "image" => "attractions/famy.jpg"],
-    // "general_mariano_alvarez" => ["name" => "General Mariano Alvarez", "image" => "attractions/general_mariano_alvarez.jpg"],
     "kalayaan" => ["name" => "Kalayaan", "image" => "attractions/kalayaan.jpg"],
-    // "kay-anlog_calamba" => ["name" => "Kay-Anlog, Calamba", "image" => "attractions/kay-anlog_calamba.jpg"],
     "liliw" => ["name" => "Liliw", "image" => "attractions/liliw.jpg"],
     "los_baños" => ["name" => "Los Baños", "image" => "attractions/los_baños.jpg"],
-    // "lucban" => ["name" => "Lucban", "image" => "attractions/lucban.jpg"],
     "lumban" => ["name" => "Lumban", "image" => "attractions/lumban.jpg"],
-    "luisiana" => ["name" => "Luisiana", "image" => "attractions/luisiana.jpg"],
+    "luisiana" => ["name" => "Luisiana", "image" => "attractions/luisiana.JPG"],
     "mabitac" => ["name" => "Mabitac", "image" => "attractions/mabitac.jpg"],
     "magdalena" => ["name" => "Magdalena", "image" => "attractions/magdalena.jpg"],
-    // "makiling" => ["name" => "Makiling", "image" => "attractions/makiling.jpg"],
-    // "malitlit" => ["name" => "Malitlit", "image" => "attractions/malitlit.jpg"],
-    // "mamatid" => ["name" => "Mamatid", "image" => "attractions/mamatid.jpg"],
     "nagcarlan" => ["name" => "Nagcarlan", "image" => "attractions/nagcarlan.jpg"],
-    "paete" => ["name" => "Paete", "image" => "attractions/paete.jpg"],
+    "paete" => ["name" => "Paete", "image" => "attractions/paete.JPG"],
     "pagsanjan" => ["name" => "Pagsanjan", "image" => "attractions/pagsanjan.jpg"],
     "pakil" => ["name" => "Pakil", "image" => "attractions/pakil.jpg"],
-    // "parian" => ["name" => "Parian", "image" => "attractions/parian.jpg"],
     "pila" => ["name" => "Pila", "image" => "attractions/pila.jpg"],
-    "pililla" => ["name" => "Pililla", "image" => "attractions/pililla.jpg"],
-    // "punta" => ["name" => "Punta", "image" => "attractions/punta.jpg"],
     "rizal" => ["name" => "Rizal", "image" => "attractions/rizal.jpg"],
-    "san_pablo" => ["name" => "San Pablo", "image" => "attractions/san_pablo.jpg"],
-    "san_pedro" => ["name" => "San Pedro", "image" => "attractions/san_pedro_city.jpg"],
-    "santa_cruz" => ["name" => "Santa Cruz", "image" => "attractions/santa_cruz.jpg"],
-    "santa_maria" => ["name" => "Santa Maria", "image" => "attractions/santa_maria.jpg"],
-    "santa_rosa" => ["name" => "Santa Rosa", "image" => "attractions/santa_rosa.jpg"],
-    "siniloan" => ["name" => "Siniloan", "image" => "attractions/siniloan.jpg"],
-    "tanay" => ["name" => "Tanay", "image" => "attractions/tanay.jpg"],
-    // "turbina" => ["name" => "Turbina", "image" => "attractions/turbina.jpg"],
+    "san_pablo" => ["name" => "San Pablo", "image" => "attractions/san_pablo.JPG"],
+    "san_pedro" => ["name" => "San Pedro", "image" => "attractions/san_pedro.jpg"],
+    "santa_cruz" => ["name" => "Santa Cruz", "image" => "attractions/santa_cruz.JPG"],
+    "santa_maria" => ["name" => "Santa Maria", "image" => "attractions/santa_maria.JPG"],
+    "santa_rosa" => ["name" => "Santa Rosa", "image" => "attractions/santa_rosa.JPG"],
+    "siniloan" => ["name" => "Siniloan", "image" => "attractions/siniloan.JPG"],
     "victoria" => ["name" => "Victoria", "image" => "attractions/victoria.jpg"]
 ];
 
 $selected_city = $_GET['city'] ?? '';
 $search_query = strtolower(trim($_GET['search'] ?? ''));
 
-// Function to display star ratings
+// Star rating function
 function displayStarRating($avg_rating) {
-    $output = '';
-    $fullStars = floor($avg_rating);  // Number of full stars
-    // $halfStar = ($avg_rating - $fullStars >= 0.5) ? 1 : 0; 
-    $emptyStars = 5 - ($fullStars/* + $halfStar*/);  // Remaining empty stars
-
-    // Full stars
-    for ($i = 0; $i < $fullStars; $i++) {
-        $output .= '<span style="color: orange;">&#9733;</span>';  // Full star
-    }
-
-    // Half star (optional, using full star for simplicity)
-    // if ($halfStar) {
-    //     $output .= '<span style="color: orange;">&#9733;</span>';  // Half star representation
-    // }
-
-    // Empty stars
-    for ($i = 0; $i < $emptyStars; $i++) {
-        $output .= '<span style="color: black;">&#9733;</span>';  // Empty star
-    }
-
-    return $output;
+    $fullStars = floor($avg_rating);
+    $emptyStars = 5 - $fullStars;
+    return str_repeat('<span style="color: orange;">&#9733;</span>', $fullStars) . 
+           str_repeat('<span style="color: black;">&#9733;</span>', $emptyStars);
 }
 
+// City selection logic
 if (!empty($selected_city) && array_key_exists($selected_city, $cities)) {
-    // Displaying Attractions for Selected City
-
-    // Prepare and execute query to get city_id
+    $city_name = $cities[$selected_city]['name'];
     $stmt = $conn->prepare("SELECT city_id FROM cities WHERE city = ?");
-    $stmt->bind_param("s", $cities[$selected_city]['name']);
+    $stmt->bind_param("s", $city_name);
     $stmt->execute();
     $city_result = $stmt->get_result();
 
     if ($city_result->num_rows > 0) {
-        $city_row = $city_result->fetch_assoc();
-        $city_id = $city_row['city_id'];
+        $city_id = $city_result->fetch_assoc()['city_id'];
 
-        // Prepare SQL to fetch attractions, with optional search
-        $sql = "SELECT a.attr_id, a.attraction_name, a.description, a.image, 
-                       IFNULL(AVG(r.rating), 0) AS avg_rating
-                FROM attractions a
-                LEFT JOIN reviews r ON a.attr_id = r.attr_id
-                WHERE a.city_id = ?";
-
+        // Fetch attractions with optional search query
+        $sql = "SELECT a.attr_id, a.attraction_name, a.description, a.image, IFNULL(AVG(r.rating), 0) AS avg_rating 
+                FROM attractions a 
+                LEFT JOIN reviews r ON a.attr_id = r.attr_id 
+                WHERE a.city_id = ? AND a.is_deleted = 0";
+                
+        $params = [$city_id];
         if (!empty($search_query)) {
             $sql .= " AND LOWER(a.attraction_name) LIKE ?";
+            $params[] = '%' . $search_query . '%';
         }
-
         $sql .= " GROUP BY a.attr_id";
-
-        // Prepare statement
         $stmt = $conn->prepare($sql);
-        if (!empty($search_query)) {
-            $search_like = '%' . $search_query . '%'; // Prepare for LIKE
-            $stmt->bind_param("is", $city_id, $search_like);
-        } else {
-            $stmt->bind_param("i", $city_id);
-        }
-
+        $stmt->bind_param(str_repeat("s", count($params)), ...$params);
         $stmt->execute();
-        $result = $stmt->get_result();
+        $attractions = $stmt->get_result();
     } else {
-        // Invalid city selected
         $invalid_city = true;
     }
 } else {
-    // Search query
-
     // Filter cities based on search query
-    if (!empty($search_query)) {
-        $filtered_cities = array_filter($cities, function ($city) use ($search_query) {
-            return strpos(strtolower($city['name']), $search_query) !== false;
+    $normalized_search_query = str_replace(['ñ', 'Ñ'], ['n', 'N'], strtolower(trim($_GET['search'] ?? '')));
+    $filtered_cities = empty($normalized_search_query) 
+        ? $cities 
+        : array_filter($cities, function($city) use ($normalized_search_query) {
+            $normalized_city_name = str_replace(['ñ', 'Ñ'], ['n', 'N'], strtolower($city['name']));
+            return strpos($normalized_city_name, $normalized_search_query) !== false;
         });
-    } else {
-        $filtered_cities = $cities;
-    }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -144,12 +106,132 @@ if (!empty($selected_city) && array_key_exists($selected_city, $cities)) {
     <link rel="stylesheet" href="styles.css">
     <style>
         .search-bar {
-            text-align: center;
-            margin: 20px 0;
+            display: flex;
+            justify-content: flex-end;
+            margin: 20px;
         }
 
-        /* City List Styles */
-        .city-list {
+        .search-bar input[type="text"] {
+            width: 300px;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin-right: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-bar input[type="text"]:focus {
+            border-color: green;
+            outline: none;
+        }
+
+        .search-bar button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: green;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            background-color: #28a745;
+        }
+
+        .city-image-bg {
+            background-size: cover;
+            background-position: center;
+            height: 350px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #FFF;
+            text-shadow: 4px 4px 6px #000;
+        }
+
+        /* Events Section Styling */
+        .events-section {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f8f8;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .events-section h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .event-item {
+            margin-bottom: 20px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .event-item h3 {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        .event-item p {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .attraction-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px;
+        }
+
+        .attraction-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .attraction-item:hover {
+            transform: scale(1.05);
+        }
+
+        .attraction-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+                /* City List Styles */
+                .city-list {
             text-align: center;
             margin: 40px 0;
         }
@@ -197,289 +279,132 @@ if (!empty($selected_city) && array_key_exists($selected_city, $cities)) {
             padding: 10px;
             color: white;
             text-align: center;
-            font-size: 18px;
+            font-size: 30px;
+            font-weight: bold;
             z-index: 1; /* Text above the image */
-            text-shadow: 4px 4px 6px #000; /* Outer shadow */
+            text-shadow: 5px 5px 8px #000; /* Outer shadow */
         }
 
-        /* Attractions Page Styles */
-        .city-image-bg {
-            background-size: cover;
-            background-position: center;
-            height: 300px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #FFF;
-            text-shadow: 4px 4px 6px #000;
-        }
-
-        .attraction-grid {
+        .page-content {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 20px;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+            padding: 20px;
         }
 
-        .attraction-item {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            transition: transform 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-content {
+                grid-template-columns: 1fr;
+            }
 
-        .attraction-item:hover {
-            transform: scale(1.05);
-        }
-        
-        .attraction-item img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
+            .attraction-grid {
+                grid-template-columns: 1fr;
+            }
 
-        .footer img {
-            width: 150px; 
-            height: auto; 
+            .city-list ul {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <?php
-    if (!empty($selected_city) && empty($invalid_city)) {
-        // Display Attractions for Selected City
-        ?>
-        <div class="city-image-bg" 
-             style="background-image: url('<?php echo htmlspecialchars($cities[$selected_city]['image']); ?>');">
-            <?php require_once "back.php"; ?>
-            <div class="content">
-                <h1 style="font-size: 80px;"><?php echo htmlspecialchars($cities[$selected_city]['name']); ?></h1>
-            </div>
-        </div>
 
-        <div class="search-bar">
-            <form method="GET" action="">
-                <input type="hidden" name="city" value="<?php echo htmlspecialchars($selected_city); ?>">
-                <input type="text" id="search" name="search" placeholder="Search attractions..." value="<?php echo htmlspecialchars($search_query); ?>">
-                <button type="submit">Search</button>
-            </form>
-        </div>
+<?php if (!empty($selected_city) && empty($invalid_city)): ?>
+    <div class="city-image-bg" style="background-image: url('<?= htmlspecialchars($cities[$selected_city]['image']) ?>');">
+        <?php require_once "back.php"; ?>
 
-        <div class="attraction-grid">
+        <!-- City Name -->
+        <div class="content">
+            <h1 style="font-size: 60px"><?= htmlspecialchars($cities[$selected_city]['name']) ?></h1>
+        </div>
+    </div>
+
+    <!-- Search Bar for Attractions -->
+    <div class="search-bar">
+        <form method="GET">
+            <input type="hidden" name="city" value="<?= htmlspecialchars($selected_city) ?>">
+            <input type="text" name="search" placeholder="Search attractions..." value="<?= htmlspecialchars($search_query) ?>">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <!-- Page Content Section: Two Columns -->
+    <div class="page-content">
+        <!-- Events Column -->
+        <div class="events-section">
+            <h2>Upcoming Events</h2>
             <?php
-            if (isset($result) && $result->num_rows > 0) {
-                while ($attraction = $result->fetch_assoc()) {
-                    echo '<a href="attraction_details.php?attr_id=' . htmlspecialchars($attraction['attr_id']) . '" class="attraction-item">';
-                    echo '<img src="images/' . htmlspecialchars($attraction['image']) . '" alt="' . htmlspecialchars($attraction['attraction_name']) . '">';
-                    echo '<h3 style="color: black">' . htmlspecialchars($attraction['attraction_name']) . '</h3>';
-                    echo '<p style="color: gray">' . htmlspecialchars($attraction['description']) . '</p>';
-                    echo '<div>' . displayStarRating($attraction['avg_rating']) . '</div>';
-                    echo '</a>';
-                }
-            } else {
-                echo '<p style="text-align: center;">No attractions found for this city.</p>';
-            }
+            // Fetch events from the database
+            $events_sql = "SELECT * FROM events WHERE city_id = ? ORDER BY event_date ASC LIMIT 5";  // Adjust based on your DB
+            $stmt = $conn->prepare($events_sql);
+            $stmt->bind_param("i", $city_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
+            if ($result->num_rows > 0):
+                while ($event = $result->fetch_assoc()): ?>
+                    <div class="event-item">
+                        <img src="images/<?= htmlspecialchars($event['event_image']) ?>" alt="<?= htmlspecialchars($event['event_name']) ?>" />
+                        <h3><?= htmlspecialchars($event['event_name']) ?></h3>
+                        <p><?= htmlspecialchars($event['event_date']) ?></p>
+                        <p><?= htmlspecialchars($event['details']) ?></p>
+                    </div>
+                <?php endwhile; 
+            else: ?>
+                <p>No upcoming events found.</p>
+            <?php endif;
             $stmt->close();
             ?>
         </div>
-        <?php
-    } elseif (!empty($selected_city) && isset($invalid_city)) {
-        // Handle Invalid City Selection
-        echo '<p style="text-align: center; color: red;">Invalid city selected.</p>';
-    } else {
-        // Display City List
-        ?>
-        <div class="city-list">
-            <h1>Select a City</h1>
-            <div class="search-bar">
-                <form method="GET" action="">
-                    <input type="text" id="search" name="search" placeholder="Search cities..." value="<?php echo htmlspecialchars($search_query); ?>">
-                    <button style="background-color: green; color: yellow; height: 35px; width: 60px; hover-background-color: blue" type="submit">Search</button>
-                </form>
+
+        <!-- Attraction Grid Column -->
+        <div>
+            <div class="attraction-grid">
+                <?php if (isset($attractions) && $attractions->num_rows > 0): ?>
+                    <?php while ($attr = $attractions->fetch_assoc()): ?>
+                        <a href="attraction_details.php?attr_id=<?= htmlspecialchars($attr['attr_id']) ?>" class="attraction-item">
+                            <img src="images/<?= htmlspecialchars($attr['image']) ?>" alt="<?= htmlspecialchars($attr['attraction_name']) ?>">
+                            <h3><?= htmlspecialchars($attr['attraction_name']) ?></h3>
+                            <p><?= htmlspecialchars($attr['description']) ?></p>
+                            <div><?= displayStarRating($attr['avg_rating']) ?></div>
+                        </a>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p>No attractions found.</p>
+                <?php endif; ?>
             </div>
-            <ul>
-                <?php
-                if (!empty($filtered_cities)) {
-                    foreach ($filtered_cities as $city_slug => $city_info) {
-                        echo '<li>';
-                        echo '<a href="attractions.php?city=' . htmlspecialchars($city_slug) . '">';
-                        echo '<img class="city-image" src="' . htmlspecialchars($city_info['image']) . '" alt="' . htmlspecialchars($city_info['name']) . '">';
-                        echo '<div class="city-name"><h2>' . htmlspecialchars($city_info['name']) . '</h2></div>';
-                        echo '</a></li>';
-                    }
-                } else {
-                    echo '<p>No cities found for "' . htmlspecialchars($search_query) . '".</p>';
-                }
-                ?>
-            </ul>
         </div>
-        <?php
-    }
-
-    // Include the footer
-    require_once "footer.php";
-    ?>
-    <!-- } -->
-</body>
-</html>
-
-    <?php
-    exit;
-// }
-// 2nd DOCtype will redirect to attractions.php?city=chosen city
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($cities[$selected_city]['name']); ?> - AccompanyMe</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .city-image {
-            background-size: cover;
-            background-position: center;
-            height: 300px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #FFF;
-            text-shadow: 4px 4px 6px #000;
-        }
-
-        .attraction-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 20px;
-        }
-
-        .attraction-item {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            transition: transform 0.3s ease;
-            cursor: pointer;
-        }
-
-        .attraction-item:hover {
-            transform: scale(1.05);
-        }
-        
-        .attraction-item img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-
-        .attraction-grid span {
-            font-size: 30;
-        }
-
-        .footer img {
-            width: 150px; 
-            height: auto; 
-        }
-    </style>
-</head>
-<body>
-<div class="city-image" 
-     style="background-image: url('<?php echo htmlspecialchars($cities[$selected_city]['image']); ?>');">
-    <br>
-    <?php require_once "back.php"; ?>
-    <div class="content">
-        <h1 style="font-size: 80px;"><?php echo htmlspecialchars($cities[$selected_city]['name']); ?></h1>
-    </div>
-</div>
-
-
-    <div class="attraction-grid">
-    <?php
-    // Query to fetch attractions and their average ratings
-    $sql = "SELECT a.attr_id, a.attraction_name, a.description, a.image, 
-                   IFNULL(AVG(r.rating), 0) AS avg_rating
-            FROM attractions a
-            LEFT JOIN reviews r ON a.attr_id = r.attr_id
-            WHERE a.city_id = ?  
-            GROUP BY a.attr_id";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $city_id); 
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Function to display star rating
-    if (!function_exists('displayStarRating')) {
-        function displayStarRating($avg_rating) {
-            $output = '';
-            $fullStars = floor($avg_rating);
-            // $halfStar = ($avg_rating - $fullStars >= 0.5) ? 1 : 0;
-            $emptyStars = 5 - ($fullStars/* + $halfStar*/);
-    
-            // Full stars
-            for ($i = 0; $i < $fullStars; $i++) {
-                $output .= '<span style="color: orange;">&#9733;</span>';
-            }
-    
-            // Half star
-            // if ($halfStar) {
-            //     $output .= '<span style="color: orange;">&#9733;</span>';
-            // }
-    
-            // Empty stars
-            for ($i = 0; $i < $emptyStars; $i++) {
-                $output .= '<span style="color: black;">&#9733;</span>';
-            }
-    
-            return $output;
-        }
-    }
-    
-
-    if ($result->num_rows > 0) {
-        while ($attraction = $result->fetch_assoc()) {
-            echo '<a style="text-decoration: none" href="attraction_details.php?attr_id=' . htmlspecialchars($attraction['attr_id']) . '" class="attraction-item">';
-            echo '<img src="images/' . htmlspecialchars($attraction['image']) . '" alt="' . htmlspecialchars($attraction['attraction_name']) . '">';
-            echo '<h3 style="color: black">' . htmlspecialchars($attraction['attraction_name']) . '</h3>';
-            echo '<p style="color: gray">' . htmlspecialchars($attraction['description']) . '</p>';
-            echo '<div>' . displayStarRating($attraction['avg_rating']) . '</div>';
-            echo '</a>';
-        }
-    } else {
-        echo '<p>No attractions found for this city.</p>';
-    }
-
-    $stmt->close();
-    ?>
     </div>
 
-    <?php require_once "footer.php"; ?>
+<?php elseif (isset($invalid_city)): ?>
+    <p style="text-align: center; color: red;">Invalid city selected.</p>
+<?php else: ?>
+    <!-- Display city list inside grid layout -->
+    <div class="city-list">
+        <h1>Select a City</h1>
+        <div class="search-bar">
+            <form method="GET">
+                <input type="text" name="search" placeholder="Search cities..." value="<?= htmlspecialchars($search_query) ?>" aria-label="Search cities">
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+        </div>
+        <ul>
+            <?php if (!empty($filtered_cities)): ?>
+                <?php foreach ($filtered_cities as $slug => $info): ?>
+                    <li>
+                        <a href="attractions.php?city=<?= htmlspecialchars($slug) ?>">
+                            <img class="city-image" src="<?= htmlspecialchars($info['image']) ?>" alt="<?= htmlspecialchars($info['name']) ?>">
+                            <div class="city-name"><?= htmlspecialchars($info['name']) ?></div>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>No cities match your search.</p>
+            <?php endif; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+
 </body>
 </html>
